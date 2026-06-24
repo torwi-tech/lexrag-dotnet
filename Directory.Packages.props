@@ -42,7 +42,7 @@
     <PackageVersion Include="OpenTelemetry.Exporter.Console" Version="1.16.0" />
 
     <!-- CSV parsing -->
-    <PackageVersion Include="CsvHelper" Version="33.0.1" />
+    <PackageVersion Include="CsvHelper" Version="33.1.0" />
 
     <!-- Test -->
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
