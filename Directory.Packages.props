@@ -17,7 +17,7 @@
     <PackageVersion Include="Azure.Identity" Version="1.13.1" />
 
     <!-- Data / vector -->
-    <PackageVersion Include="Npgsql" Version="8.0.5" />
+    <PackageVersion Include="Npgsql" Version="10.0.3" />
     <PackageVersion Include="Pgvector" Version="0.3.2" />
 
     <!-- Ingestion -->
