@@ -14,7 +14,7 @@
     <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Quality" Version="10.7.0" />
     <PackageVersion Include="Microsoft.Extensions.VectorData.Abstractions" Version="10.7.0" />
     <PackageVersion Include="Azure.AI.OpenAI" Version="2.9.0-beta.1" />
-    <PackageVersion Include="Azure.Identity" Version="1.13.1" />
+    <PackageVersion Include="Azure.Identity" Version="1.21.0" />
 
     <!-- Data / vector -->
     <PackageVersion Include="Npgsql" Version="8.0.5" />
