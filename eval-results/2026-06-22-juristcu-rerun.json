@@ -1,0 +1,52 @@
+{
+  "run_id": "2026-06-22-juristcu-rerun",
+  "run_index": 2,
+  "run_date": "2026-06-22",
+  "run_timestamp_utc": "2026-06-23T02:35:00Z",
+  "relationship": "Independent confirmatory re-run of 2026-06-22-juristcu.json — same dataset, models and parameters, on a freshly seeded pgvector container. Recorded to show the headline numbers reproduce; the first file stays the canonical run.",
+  "dataset": "JurisTCU",
+  "provider": "Azure OpenAI",
+  "models": {
+    "embedding": "text-embedding-3-small",
+    "chat_and_judge": "gpt-4.1-mini"
+  },
+  "corpus": { "documents": 16045, "chunks_seeded": 16052, "queries": 150 },
+  "parameters": { "k": 10, "relevance_cutoff": 1, "rrf_k": 60, "top_k": 10 },
+  "stack": {
+    "embedder": "AzureOpenAI",
+    "vector_store": "pgvector (pgvector/pgvector:pg16, fresh container)",
+    "note": "Mode verified live via GET /health -> {embedder: AzureOpenAI, vectorStore: pgvector} before measuring; not the keyless fakes."
+  },
+  "retrieval": {
+    "note": "Only the semantic (Azure) path was re-measured this round; the lexical hash baseline was not re-run (see 2026-06-22-juristcu.json for it).",
+    "semantic_azure": { "recall_at_k": 0.423, "hit_rate_at_k": 0.987, "mrr": 0.906 }
+  },
+  "llm_judge": {
+    "evaluator": "Microsoft.Extensions.AI.Evaluation (Groundedness + Relevance)",
+    "cases": 25,
+    "runs": 5,
+    "method": "Answers generated once; the judge runs 5x over the fixed answers, so the standard deviation isolates judge variance rather than generator variance.",
+    "groundedness_1_5": { "mean": 5.0, "sd": 0.0 },
+    "relevance_1_5": { "mean": 4.61, "sd": 0.104 },
+    "layer1_lexical_faithful": { "rate": 0.84, "count": "21/25" },
+    "layer2_grounded_rate_ge4": { "mean": 1.0, "sd": 0.0 },
+    "agreement_l1_eq_l2": { "mean": 0.84, "sd": 0.0, "count": "21/25" },
+    "divergences": [
+      { "query": "acréscimos e supressões", "layer1_faithful": false, "groundedness": 5, "relevance": 4 },
+      { "query": "despesa sem cobertura contratual", "layer1_faithful": false, "groundedness": 5, "relevance": 4 },
+      { "query": "impedimento de licitar e contratar", "layer1_faithful": false, "groundedness": 5, "relevance": 4 },
+      { "query": "fracionamento de despesas", "layer1_faithful": false, "groundedness": 5, "relevance": 4 }
+    ]
+  },
+  "comparison_to_first_run": {
+    "recall_at_10": { "first": 0.417, "rerun": 0.423, "verdict": "match" },
+    "hit_rate_at_10": { "first": 1.0, "rerun": 0.987, "verdict": "within margin (1-2 queries; ANN/index non-determinism)" },
+    "mrr": { "first": 0.88, "rerun": 0.906, "verdict": "within margin" },
+    "agreement_l1_eq_l2": { "first": 0.84, "rerun": 0.84, "verdict": "match" },
+    "groundedness": { "first": 5.0, "rerun": 5.0, "verdict": "match" },
+    "relevance": { "first": 4.5, "rerun": 4.61, "verdict": "within margin (judge variance; absolute scores are indicative, per ADR 0011)" },
+    "divergence_direction": "one-directional in both runs — the lexical gate marks answers not-faithful that the judge scores groundedness 5/5; never the reverse. 2 of the 4 divergent queries are identical across runs."
+  },
+  "provenance": "Local run against Azure OpenAI on a fresh pgvector container. NOT produced by CI — ci.yml runs the keyless Layer 1 only (the judge skips without a key, by design). Reproduce with POST /eval/retrieval and POST /eval/judge (Eval__JudgeRuns=5) when a key is configured.",
+  "interpretation": "Reproduces the headline pattern from 2026-06-22-juristcu.json: semantic recall@10 holds at ~42% and Layer 1 / Layer 2 agreement at 84% with the same one-directional divergence (the deterministic gate is conservative, not wrong). Hit-rate, MRR and relevance differ by a hair, within the variance the ADR already flags as indicative."
+}

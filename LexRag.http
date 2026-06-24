@@ -1,0 +1,75 @@
+@host = http://localhost:5007
+
+### Health — reports mode, chunkCount, embeddingDimensions
+GET {{host}}/health
+
+###
+
+### Ask — standard RAG pipeline (retrieve + rerank + grounded generation)
+POST {{host}}/ask
+Content-Type: application/json
+
+{
+  "query": "Qual o termo inicial da prescricao intercorrente na execucao fiscal?"
+}
+
+###
+
+### Ask — out-of-domain query triggers refusal (anti-hallucination path)
+POST {{host}}/ask
+Content-Type: application/json
+
+{
+  "query": "Qual a capital da Australia?"
+}
+
+###
+
+### Ask/CRAG — corrective RAG: grades retrieval, re-queries when weak
+POST {{host}}/ask/crag
+Content-Type: application/json
+
+{
+  "query": "gostaria de saber sobre a prescricao intercorrente na execucao fiscal"
+}
+
+###
+
+### Ask/Agentic — SK plugin invoked via M.E.AI function-invocation loop (keyless)
+POST {{host}}/ask/agentic
+Content-Type: application/json
+
+{
+  "query": "O que diz a Sumula 435 do STJ sobre redirecionamento na execucao fiscal?"
+}
+
+###
+
+### Ingest text — index a plain-text document
+POST {{host}}/ingest/text
+Content-Type: application/json
+
+{
+  "sourceFile": "sample-doc.txt",
+  "content": "Sumula 106 STJ: Proposta a acao no prazo fixado para o seu exercicio, a demora na citacao, por motivos inerentes ao mecanismo da Justica, nao justifica o acolhimento da arguicao de prescricao ou decadencia."
+}
+
+###
+
+### Eval — deterministic gate: lexical faithfulness, citation correctness, refusal accuracy
+POST {{host}}/eval
+
+###
+
+### Eval/Retrieval — Recall@K / Hit-rate@K / MRR over the golden set
+POST {{host}}/eval/retrieval
+
+###
+
+### Eval/Ablation — compares dense-only / sparse-only / hybrid / hybrid+rerank
+POST {{host}}/eval/ablation
+
+###
+
+### Eval/Perturbation — hit-rate delta across surface-form variants (casing, whitespace, term order)
+POST {{host}}/eval/perturbation

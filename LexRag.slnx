@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LexRag.Api/LexRag.Api.csproj" />
+    <Project Path="src/LexRag.Core/LexRag.Core.csproj" />
+    <Project Path="src/LexRag.Embeddings/LexRag.Embeddings.csproj" />
+    <Project Path="src/LexRag.Eval/LexRag.Eval.csproj" />
+    <Project Path="src/LexRag.Index/LexRag.Index.csproj" />
+    <Project Path="src/LexRag.Ingestion/LexRag.Ingestion.csproj" />
+    <Project Path="src/LexRag.Orchestration/LexRag.Orchestration.csproj" />
+    <Project Path="src/LexRag.Retrieval/LexRag.Retrieval.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LexRag.Tests/LexRag.Tests.csproj" />
+  </Folder>
+</Solution>

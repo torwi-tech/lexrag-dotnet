@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: nuget
+    directory: "/"
+    schedule:
+      interval: weekly
+    # AI preview packages (Microsoft.SemanticKernel, Microsoft.Extensions.AI, Azure.AI.OpenAI)
+    # are centrally managed in Directory.Packages.props; Dependabot opens PRs but a human
+    # reviews them before merge because minor bumps in the AI preview line can break the API.
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

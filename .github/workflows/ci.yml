@@ -1,0 +1,126 @@
+name: ci
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest  # Linux runner: no Windows Smart App Control; Docker available for Testcontainers
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # Target the test project (not the .slnx) so the .NET 8 SDK builds the whole graph via
+      # project references — avoids needing an SDK that parses the new .slnx format.
+      - name: Restore
+        run: dotnet restore tests/LexRag.Tests/LexRag.Tests.csproj
+
+      - name: Build
+        run: dotnet build tests/LexRag.Tests/LexRag.Tests.csproj -c Release --no-restore
+
+      # Collect Coverlet coverage for the core library (non-gating; report only).
+      # On Linux the pgvector Testcontainers integration test runs for real (Docker is present).
+      - name: Test
+        run: |
+          dotnet test tests/LexRag.Tests/LexRag.Tests.csproj -c Release --no-build \
+            --logger "console;verbosity=normal" \
+            --collect:"XPlat Code Coverage" \
+            --results-directory coverage/
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+
+  eval-regression:
+    runs-on: ubuntu-latest
+    needs: build-test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore API
+        run: dotnet restore src/LexRag.Api/LexRag.Api.csproj
+
+      - name: Build API
+        run: dotnet build src/LexRag.Api/LexRag.Api.csproj -c Release --no-restore
+
+      # Keyless recall floor check over the committed curated golden set (14 labeled queries;
+      # 12 single-hop + 2 multi-hop; 5 sumula corpus files).
+      #
+      # NOTE: the 150-query JurisTCU set is large (91 MB) and is NOT committed; it lives in
+      # data/juristcu/ (gitignored). This gate uses only the in-repo curated corpus.
+      # JurisTCU baselines (hit-rate 95%, recall 26%, MRR 0.73 -- lexical) are documented in
+      # Docs/eval-datasets.md and can be reproduced locally with scripts/eval-reproduce.sh once
+      # the data/ folder is populated.
+      #
+      # Floors are set conservatively below the curated-set values observed on the keyless path.
+      # The curated queries share strong lexical overlap with the 5-document corpus, so a working
+      # retrieval pipeline reliably exceeds these minimums. A broken retrieval refactor fails here
+      # before it reaches main. The gate does NOT check the JurisTCU numbers (not committed).
+      - name: Start API (keyless) and run eval/retrieval
+        env:
+          ASPNETCORE_ENVIRONMENT: Testing
+          ASPNETCORE_URLS: http://localhost:5007
+        run: |
+          dotnet run --no-build --project src/LexRag.Api -c Release &
+          API_PID=$!
+
+          # Wait up to 30 s for the API to become ready.
+          READY=0
+          for i in $(seq 1 60); do
+            if curl -sf http://localhost:5007/health > /dev/null 2>&1; then
+              echo "API ready"
+              READY=1
+              break
+            fi
+            sleep 0.5
+          done
+
+          if [ "$READY" -eq 0 ]; then
+            kill $API_PID 2>/dev/null || true
+            echo "API did not start in time" >&2
+            exit 1
+          fi
+
+          RESULT=$(curl -sf -X POST http://localhost:5007/eval/retrieval)
+          echo "eval/retrieval result: $RESULT"
+          kill $API_PID 2>/dev/null || true
+
+          # Parse and check against conservative floors.
+          # Floors: hit-rate 0.70, recall 0.50, MRR 0.50.
+          # These are safely below the values a correct keyless pipeline produces on the
+          # 14-query curated set; any regression in retrieval drops below them.
+          python3 - "$RESULT" << 'PYEOF'
+          import json, sys
+
+          data = json.loads(sys.argv[1])
+          hit    = data["hitRateAtK"]
+          recall = data["recallAtK"]
+          mrr    = data["mrr"]
+
+          print(f"Hit-rate@K : {hit:.3f}  (floor 0.70)")
+          print(f"Recall@K   : {recall:.3f}  (floor 0.50)")
+          print(f"MRR        : {mrr:.3f}  (floor 0.50)")
+
+          failed = False
+          if hit < 0.70:
+              print(f"FAIL: hit-rate {hit:.3f} < 0.70"); failed = True
+          if recall < 0.50:
+              print(f"FAIL: recall {recall:.3f} < 0.50"); failed = True
+          if mrr < 0.50:
+              print(f"FAIL: MRR {mrr:.3f} < 0.50"); failed = True
+
+          if failed:
+              sys.exit(1)
+          print("PASS: all retrieval metrics above floor")
+          PYEOF
