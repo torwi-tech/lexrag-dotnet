@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Domain core: ZERO external NuGet dependencies on purpose (hexagonal / clean core).
+       All framework types (IChatClient, vector connectors, PdfPig) are adapters in
+       outer projects. Everything here is pure and unit-testable without a key or Docker.
+       TFM / Nullable / ImplicitUsings come from Directory.Build.props. -->
+  <PropertyGroup>
+    <RootNamespace>LexRag.Core</RootNamespace>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\LexRag.Core\LexRag.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- The provider-agnostic AI layer; the real embedder wraps an IEmbeddingGenerator. -->
+    <PackageReference Include="Microsoft.Extensions.AI.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+  </ItemGroup>
+
+</Project>

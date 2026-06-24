@@ -1,0 +1,17 @@
+{
+  "run_date": "2026-06-24",
+  "dataset": "JurisTCU",
+  "provider": "keyless (hash embedder, in-memory store)",
+  "sample": "50-query sample of the 150 official queries (Eval__JurisTcuMaxQueries=50)",
+  "parameters": { "k": 10, "relevance_cutoff": 1, "rrf_k": 60 },
+  "how_to_reproduce": "Eval__Dataset=juristcu Eval__JurisTcuMaxQueries=50 Rag__TopK=10 ASPNETCORE_ENVIRONMENT=Testing dotnet run --project src/LexRag.Api ; then POST /eval/ablation",
+  "k": 10,
+  "labeledCases": 50,
+  "configurations": [
+    { "name": "dense-only",          "description": "vector search (cosine, hash embedder), no sparse leg", "n": 50, "hitRateAtK": 0.56, "recallAtK": 0.1001, "mrr": 0.3361 },
+    { "name": "sparse-only",         "description": "BM25 keyword leg only, no dense leg",                  "n": 50, "hitRateAtK": 0.86, "recallAtK": 0.2465, "mrr": 0.5935 },
+    { "name": "hybrid-no-rerank",    "description": "RRF fusion of dense + sparse, no reranker",            "n": 50, "hitRateAtK": 0.86, "recallAtK": 0.1848, "mrr": 0.5173 },
+    { "name": "hybrid-with-rerank",  "description": "RRF fusion + LexicalCoverage reranker",                "n": 50, "hitRateAtK": 0.88, "recallAtK": 0.2337, "mrr": 0.5577 }
+  ],
+  "interpretation": "Keyless, the dense leg is the FNV-1a hash proxy (not semantic), so dense-only is the weakest config (recall 10%) and fusing it dilutes the sparse leg: hybrid recall (18%) sits below sparse-only (25%). The reranker recovers part of that (18% -> 23%) and gives the best hit-rate (88%), but does not overtake sparse-only on recall in this keyless setup. This is the expected shape when the dense leg is a stand-in: the hybrid + RRF payoff appears with a real semantic embedder, which is exactly where the measured recall lift (26% -> 42%, see eval-datasets.md) comes from. This run is honest evidence of each leg's keyless contribution, not a claim that the hybrid wins without a real embedder."
+}

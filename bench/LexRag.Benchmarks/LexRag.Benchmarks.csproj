@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <!-- BenchmarkDotNet requires Release; the project is never built in CI Debug mode. -->
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <!-- BenchmarkDotNet only makes sense in Release; suppress the Debug warning. -->
+    <NoWarn>$(NoWarn);BDN001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\LexRag.Core\LexRag.Core.csproj" />
+    <ProjectReference Include="..\..\src\LexRag.Embeddings\LexRag.Embeddings.csproj" />
+    <ProjectReference Include="..\..\src\LexRag.Index\LexRag.Index.csproj" />
+    <ProjectReference Include="..\..\src\LexRag.Retrieval\LexRag.Retrieval.csproj" />
+    <ProjectReference Include="..\..\src\LexRag.Orchestration\LexRag.Orchestration.csproj" />
+    <ProjectReference Include="..\..\src\LexRag.Ingestion\LexRag.Ingestion.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BenchmarkDotNet" />
+  </ItemGroup>
+
+</Project>

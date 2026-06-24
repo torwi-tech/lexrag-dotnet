@@ -1,0 +1,35 @@
+{
+  "run_date": "2026-06-22",
+  "dataset": "JurisTCU",
+  "provider": "Azure OpenAI",
+  "models": {
+    "embedding": "text-embedding-3-small",
+    "chat_and_judge": "gpt-4.1-mini"
+  },
+  "corpus": { "documents": 16045, "queries": 150 },
+  "parameters": { "k": 10, "relevance_cutoff": 1, "rrf_k": 60, "top_k": 10 },
+  "retrieval": {
+    "note": "Same corpus, queries, k and cutoff; only the embedder changes (it sits behind a port).",
+    "lexical_hash_keyless": { "recall_at_k": 0.26, "hit_rate_at_k": 0.95, "mrr": 0.73 },
+    "semantic_azure": { "recall_at_k": 0.417, "hit_rate_at_k": 1.0, "mrr": 0.88 }
+  },
+  "llm_judge": {
+    "evaluator": "Microsoft.Extensions.AI.Evaluation (Groundedness + Relevance)",
+    "cases": 25,
+    "runs": 5,
+    "method": "Answers generated once; the judge runs 5x over the fixed answers, so the standard deviation isolates judge variance rather than generator variance.",
+    "groundedness_1_5": { "mean": 5.0, "sd": 0.0 },
+    "relevance_1_5": { "mean": 4.5, "sd": 0.088 },
+    "layer1_lexical_faithful": { "rate": 0.84, "count": "21/25" },
+    "layer2_grounded_rate_ge4": { "mean": 1.0, "sd": 0.0 },
+    "agreement_l1_eq_l2": { "mean": 0.84, "sd": 0.0, "count": "21/25" },
+    "divergences": [
+      { "query": "acréscimos e supressões", "layer1_faithful": false, "groundedness": 5, "relevance": 4 },
+      { "query": "parcelas de maior relevância e valor significativo", "layer1_faithful": false, "groundedness": 5, "relevance": 5 },
+      { "query": "despesa sem cobertura contratual", "layer1_faithful": false, "groundedness": 5, "relevance": 5 },
+      { "query": "fraude a licitação", "layer1_faithful": false, "groundedness": 5, "relevance": 4 }
+    ]
+  },
+  "provenance": "Local run against Azure OpenAI. NOT produced by CI — ci.yml runs the keyless Layer 1 only (the judge skips without a key, by design). Reproduce with POST /eval/retrieval and POST /eval/judge (Eval__JudgeRuns=5) when a key is configured.",
+  "interpretation": "The semantic embedder lifts recall from 26% to 42% at the same relevance cutoff. The 16% Layer 1 / Layer 2 divergence is one-directional: the lexical gate marks 4 answers not-faithful that the judge scores groundedness 5/5 — the cheap gate is conservative (no false pass) but pessimistic. Agreement is stable at 84% +/- 0 pp across 5 runs."
+}

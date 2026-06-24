@@ -1,0 +1,25 @@
+# pgvector for LexRAG — local dev + integration tests.
+#   docker compose up -d
+#   psql postgresql://lexrag:lexrag@localhost:5432/lexrag -c "CREATE EXTENSION IF NOT EXISTS vector;"
+# The schema (table + HNSW + GIN full-text index) is applied by db/init/01-schema.sql on first boot.
+services:
+  pgvector:
+    image: pgvector/pgvector:pg16
+    container_name: lexrag-pgvector
+    environment:
+      POSTGRES_USER: lexrag
+      POSTGRES_PASSWORD: lexrag
+      POSTGRES_DB: lexrag
+    ports:
+      - "5432:5432"
+    volumes:
+      - lexrag-pgdata:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U lexrag -d lexrag"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  lexrag-pgdata:

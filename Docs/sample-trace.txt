@@ -1,0 +1,59 @@
+# Real OpenTelemetry console-exporter output from POST /ask, captured keyless.
+#
+# How it was produced (reproduces from a cold clone, no key, no Docker):
+#   ASPNETCORE_ENVIRONMENT=Testing dotnet run --project src/LexRag.Api   # keyless: hash embedder + extractive chat
+#   curl -s localhost:5007/ask -H "Content-Type: application/json" \
+#     -d '{"query":"qual o prazo da prescricao intercorrente na execucao fiscal?"}'
+#
+# With no OTEL_EXPORTER_OTLP_ENDPOINT set, the console exporter prints every span.
+# Keyless run, so there are no outbound model calls: the two spans below are the
+# LexRag.Rag pipeline span and the ASP.NET Core server span, on one TraceId.
+# The rag.ask tags carry the per-stage latency (retrieve/rerank/generate) and the
+# grounding decision, the same instrumentation a real run exports to OTLP.
+
+Activity.TraceId:            8c7d837d8561933ba5f0500fa1d3bea5
+Activity.SpanId:             691be8fab58d761f
+Activity.TraceFlags:         Recorded
+Activity.ParentSpanId:       801cdc300ec5c3c7
+Activity.DisplayName:        rag.ask
+Activity.Kind:               Internal
+Activity.Duration:           00:00:00.0498816
+Activity.Tags:
+    rag.query_length: 60
+    rag.retrieved: 5
+    rag.retrieve_ms: 24.0437
+    rag.reranked_topk: 5
+    rag.rerank_ms: 2.3448
+    rag.grounded: true
+    rag.generate_ms: 19.7519
+Instrumentation scope (ActivitySource):
+    Name: LexRag.Rag
+Resource associated with Activity:
+    service.name: LexRag.Api
+    telemetry.sdk.name: opentelemetry
+    telemetry.sdk.language: dotnet
+    telemetry.sdk.version: 1.16.0
+
+Activity.TraceId:            8c7d837d8561933ba5f0500fa1d3bea5
+Activity.SpanId:             801cdc300ec5c3c7
+Activity.TraceFlags:         Recorded
+Activity.DisplayName:        POST /ask
+Activity.Kind:               Server
+Activity.Duration:           00:00:00.1031181
+Activity.Tags:
+    server.address: localhost
+    server.port: 5007
+    http.request.method: POST
+    url.scheme: http
+    url.path: /ask
+    network.protocol.version: 1.1
+    user_agent.original: curl/8.19.0
+    http.route: /ask
+    http.response.status_code: 200
+Instrumentation scope (ActivitySource):
+    Name: Microsoft.AspNetCore
+Resource associated with Activity:
+    service.name: LexRag.Api
+    telemetry.sdk.name: opentelemetry
+    telemetry.sdk.language: dotnet
+    telemetry.sdk.version: 1.16.0

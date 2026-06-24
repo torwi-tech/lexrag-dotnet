@@ -1,0 +1,28 @@
+# .NET build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+*.suo
+.vs/
+
+# Rider / VS Code
+.idea/
+.vscode/
+
+# Secrets — never commit
+appsettings.*.local.json
+secrets.json
+*.env
+.env
+
+# pgvector volume (if mounted locally)
+.pgdata/
+
+# Test results
+TestResults/
+*.trx
+coverage*.xml
+data/
+CLAUDE.md
