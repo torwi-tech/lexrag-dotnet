@@ -21,7 +21,7 @@
     <PackageVersion Include="Pgvector" Version="0.3.2" />
 
     <!-- Ingestion -->
-    <PackageVersion Include="PdfPig" Version="0.1.14" />
+    <PackageVersion Include="PdfPig" Version="0.1.15" />
 
 
     <!-- Hosting / config / DI — aligned to the 10.0.x line so they never resolve below the
